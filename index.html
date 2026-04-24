@@ -216,7 +216,7 @@ textarea{resize:vertical;line-height:1.6;}
     </div>
     <span class="sv-logo-txt">Front</span>
   </div>
-  <div class="sv-badge">AI Initiative · 2025</div>
+  <div class="sv-badge">AI Initiative · 2026</div>
   <div class="sv-title">Help shape our AI future</div>
   <div class="sv-sub">6 questions · ~3 minutes · your ideas directly inform what we build next</div>
 </div>
@@ -362,17 +362,41 @@ var S={tech:'',mind:'',track:'',role:'',step:1};
 var pilots=[];
 var submissions=[];
 
-var SKEY='front_ai_survey_v1';
+var GS_URL='https://script.google.com/macros/s/AKfycbzUPFoaYlnhSxIW9rCYF4pIBELDdq5pDahK9ALdNvj2phEYMT-yrYm7ySBBe9h7kjmKUA/exec';
+var PILOTS_KEY='front_pilots_v1';
 
-async function saveData(){
-  try{await window.storage.set(SKEY,JSON.stringify({submissions:submissions,pilots:pilots}));}catch(e){}
-}
-async function loadData(){
+async function saveSubmission(sub){
   try{
-    var r=await window.storage.get(SKEY);
-    if(r&&r.value){var d=JSON.parse(r.value);submissions=d.submissions||[];pilots=d.pilots||[];}
-  }catch(e){submissions=[];pilots=[];}
+    await fetch(GS_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(sub)
+    });
+  }catch(e){console.log('Sheet write error:',e);}
+}
+
+async function loadData(){
+  // Load pilots from localStorage
+  try{
+    var p=localStorage.getItem(PILOTS_KEY);
+    if(p) pilots=JSON.parse(p);
+  }catch(e){pilots=[];}
+
+  // Load submissions from Google Sheet
+  try{
+    var resp=await fetch(GS_URL+'?t='+Date.now());
+    var data=await resp.json();
+    submissions=data.submissions||[];
+  }catch(e){
+    console.log('Sheet read error:',e);
+    submissions=[];
+  }
   refreshMetrics();renderAllIdeas();renderPilots();
+}
+
+function savePilots(){
+  try{localStorage.setItem(PILOTS_KEY,JSON.stringify(pilots));}catch(e){}
 }
 
 function showTab(name){
@@ -399,12 +423,12 @@ function addEmail(){
   if(pilots.find(function(p){return p.email===val;})){inp.value='';return;}
   pilots.push({email:val,status:'pending'});
   inp.value='';
-  saveData();renderPilots();
+  savePilots();renderPilots();
 }
 
 function markAllSent(){
   pilots.forEach(function(p){if(p.status==='pending')p.status='sent';});
-  saveData();renderPilots();
+  savePilots();renderPilots();
 }
 
 function renderPilots(){
@@ -526,10 +550,13 @@ function submitSurvey(){
     unlock:document.getElementById('t6').value,
     email:(pilots.find(function(p){return p.status==='sent';})||{}).email||''
   };
+  // Save to Google Sheet
+  saveSubmission(sub);
+  // Also keep local copy for immediate UI update
   submissions.push(sub);
-  saveData();refreshMetrics();
+  refreshMetrics();
   var sp=pilots.find(function(p){return p.status==='sent';});
-  if(sp)sp.status='responded';
+  if(sp){sp.status='responded';savePilots();}
   document.querySelectorAll('.card').forEach(function(c){c.classList.remove('on');});
   document.getElementById('done').classList.add('on');
   document.getElementById('bar').style.width='100%';
@@ -566,6 +593,13 @@ function renderAllIdeas(){
 }
 
 async function generateRankings(){
+  // Always pull fresh data from Google Sheet before ranking
+  try{
+    var resp=await fetch(GS_URL+'?t='+Date.now());
+    var data=await resp.json();
+    submissions=data.submissions||[];
+    refreshMetrics();
+  }catch(e){console.log('Could not refresh from sheet:',e);}
   if(submissions.length===0){alert('No submissions yet — share the survey link and collect responses first.');return;}
   var btn=document.getElementById('genBtn');
   btn.disabled=true;btn.textContent='Evaluating...';
