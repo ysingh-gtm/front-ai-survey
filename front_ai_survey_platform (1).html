@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --fp:#7B2FBE;--fpd:#3D0066;--fpm:#5B1F9A;--fpl:#C4B5FD;--fpp:#EDE9FF;
+  --fl:#D4F542;--fn:#1A1F3C;--fw:#fff;--fo:#F7F6FB;--fb:rgba(123,47,190,0.15);
+  --fm:#6B7280;--r:12px;--rs:8px;
+  --gs:#10B981;--gb:#ECFDF5;--ws:#F59E0B;--wb:#FFFBEB;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--fo);color:var(--fn);min-height:100vh;}
+.tabs{display:flex;background:var(--fpd);padding:0 32px;}
+.tab{padding:14px 20px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.55);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;}
+.tab.on{color:#fff;border-bottom-color:var(--fl);}
+.screen{display:none;}.screen.on{display:block;}
+
+/* ADMIN */
+.admin-wrap{max-width:720px;margin:0 auto;padding:32px 24px 60px;}
+.section-card{background:#fff;border:1px solid var(--fb);border-radius:var(--r);padding:24px 28px;margin-bottom:16px;}
+.sc-title{font-size:15px;font-weight:600;color:var(--fn);margin-bottom:4px;}
+.sc-sub{font-size:12px;color:var(--fm);margin-bottom:18px;}
+.link-box{display:flex;gap:8px;align-items:center;}
+.link-val{flex:1;padding:10px 14px;background:var(--fpp);border:1.5px solid var(--fb);border-radius:var(--rs);font-size:13px;color:var(--fpm);font-family:'DM Sans',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pill-btn{padding:9px 16px;font-size:13px;font-weight:500;background:var(--fp);color:#fff;border:none;border-radius:var(--rs);cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;}
+.pill-btn:hover{background:var(--fpm);}
+.pill-btn.lime{background:var(--fl);color:var(--fn);}
+.pill-btn.lime:hover{background:#c5e530;}
+.email-row{display:flex;gap:8px;margin-bottom:12px;}
+input[type="email"]{flex:1;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--fn);background:var(--fo);border:1.5px solid var(--fb);border-radius:var(--rs);outline:none;transition:border-color 0.2s;}
+input[type="email"]:focus{border-color:var(--fp);background:#fff;}
+.pilot-list{display:flex;flex-direction:column;gap:8px;}
+.pilot-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--fo);border-radius:var(--rs);font-size:13px;}
+.status{padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;}
+.st-pending{background:#F3F4F6;color:#6B7280;}
+.st-sent{background:#DBEAFE;color:#1D4ED8;}
+.st-responded{background:var(--gb);color:var(--gs);}
+.copy-confirm{font-size:12px;color:var(--gs);margin-top:6px;display:none;}
+.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.metric{background:var(--fpp);border-radius:var(--rs);padding:14px 16px;text-align:center;}
+.m-val{font-size:28px;font-weight:600;color:var(--fp);}
+.m-lbl{font-size:11px;color:var(--fm);margin-top:2px;text-transform:uppercase;letter-spacing:0.05em;}
+
+/* SURVEY */
+.sv-hdr{background:var(--fpd);padding:24px 40px 20px;position:relative;overflow:hidden;}
+.sv-hdr::after{content:'';position:absolute;right:0;top:0;bottom:0;width:160px;background:repeating-linear-gradient(90deg,transparent,transparent 8px,rgba(123,47,190,0.5) 8px,rgba(123,47,190,0.5) 16px,transparent 16px,transparent 28px,rgba(123,47,190,0.3) 28px,rgba(123,47,190,0.3) 34px);mask:repeating-linear-gradient(180deg,#000 0,#000 30px,transparent 30px,transparent 46px);}
+.sv-logo{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.sv-logo-box{width:26px;height:26px;background:var(--fp);border-radius:6px;display:flex;align-items:center;justify-content:center;}
+.sv-logo-txt{font-weight:600;font-size:17px;color:#fff;letter-spacing:-0.02em;}
+.sv-badge{display:inline-block;background:var(--fl);color:var(--fn);font-size:11px;font-weight:600;padding:3px 11px;border-radius:20px;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;}
+.sv-title{font-family:'DM Serif Display',serif;font-size:22px;color:#fff;line-height:1.2;margin-bottom:4px;}
+.sv-sub{font-size:13px;color:var(--fpl);line-height:1.5;}
+.prog-wrap{background:#fff;padding:12px 40px;border-bottom:1px solid var(--fb);display:flex;align-items:center;gap:16px;}
+.prog-outer{flex:1;height:4px;background:var(--fpp);border-radius:2px;overflow:hidden;}
+.prog-inner{height:100%;background:var(--fp);border-radius:2px;transition:width 0.4s;width:16%;}
+.prog-lbl{font-size:12px;font-weight:500;color:var(--fm);white-space:nowrap;min-width:56px;text-align:right;}
+.sv-body{max-width:640px;margin:0 auto;padding:28px 24px 60px;}
+.card{background:#fff;border:1px solid var(--fb);border-radius:var(--r);padding:26px;margin-bottom:14px;display:none;animation:fu 0.3s ease;}
+.card.on{display:block;}
+@keyframes fu{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.qstep{font-size:11px;font-weight:600;color:var(--fp);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;}
+.qtitle{font-family:'DM Serif Display',serif;font-size:19px;line-height:1.3;color:var(--fn);margin-bottom:5px;}
+.qhint{font-size:13px;color:var(--fm);line-height:1.5;margin-bottom:16px;}
+.qhint em{font-style:normal;color:var(--fpm);font-weight:500;}
+select,textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--fn);background:var(--fo);border:1.5px solid var(--fb);border-radius:var(--rs);padding:10px 13px;outline:none;transition:border-color 0.2s;-webkit-appearance:none;}
+select{cursor:pointer;}
+select:focus,textarea:focus{border-color:var(--fp);background:#fff;}
+textarea{resize:vertical;line-height:1.6;}
+.opts{display:flex;flex-direction:column;gap:9px;}
+.opt{display:flex;align-items:flex-start;gap:11px;padding:11px 14px;border:1.5px solid var(--fb);border-radius:var(--rs);cursor:pointer;background:var(--fo);user-select:none;transition:border-color 0.15s,background 0.15s;}
+.opt:hover{border-color:var(--fpl);background:#fff;}
+.opt.sel{border-color:var(--fp);background:var(--fpp);}
+.dot{width:17px;height:17px;flex-shrink:0;margin-top:2px;border:2px solid var(--fpl);border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.opt.sel .dot{background:var(--fp);border-color:var(--fp);}
+.dot-i{width:5px;height:5px;border-radius:50%;background:#fff;display:none;}
+.opt.sel .dot-i{display:block;}
+.otxt strong{font-weight:600;font-size:14px;display:block;margin-bottom:2px;}
+.otxt span{font-size:12px;color:var(--fm);}
+.trbadge{display:inline-flex;align-items:center;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:16px;}
+.tr-tech{background:#EDE9FF;color:var(--fpm);}
+.tr-biz{background:#FFF3E0;color:#B45309;}
+.tr-exec{background:var(--fn);color:var(--fl);}
+.sketch{background:var(--fpp);border-left:3px solid var(--fp);border-radius:0 var(--rs) var(--rs) 0;padding:13px 15px;font-size:13px;font-style:italic;color:var(--fpm);margin-bottom:13px;line-height:1.5;}
+.divider{height:1px;background:var(--fb);margin:18px 0;}
+.feas{display:flex;flex-direction:column;gap:18px;}
+.feas-lbl{font-size:13px;font-weight:500;color:var(--fn);margin-bottom:9px;padding-left:11px;position:relative;}
+.feas-lbl::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:5px;height:5px;background:var(--fp);border-radius:50%;}
+.prow{display:flex;flex-wrap:wrap;gap:7px;}
+.p{padding:7px 15px;border:1.5px solid var(--fb);border-radius:20px;font-size:13px;cursor:pointer;background:var(--fo);color:var(--fn);font-family:'DM Sans',sans-serif;display:inline-block;user-select:none;transition:all 0.15s;}
+.p:hover{border-color:var(--fpl);background:#fff;}
+.p.pon{background:var(--fp);border-color:var(--fp);color:#fff;font-weight:500;}
+.navrow{display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:10px;}
+.btn{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;padding:10px 22px;border-radius:var(--rs);cursor:pointer;border:none;outline:none;transition:all 0.15s;}
+.btn-p{background:var(--fp);color:#fff;}
+.btn-p:hover{background:var(--fpm);}
+.btn-s{background:transparent;border:1.5px solid var(--fb);color:var(--fm);}
+.btn-s:hover{border-color:var(--fpl);color:var(--fn);}
+.btn-go{background:var(--fl);color:var(--fn);font-weight:600;}
+.btn-go:hover{background:#c5e530;}
+.otag{font-size:11px;color:var(--fm);background:var(--fo);border:1px solid var(--fb);border-radius:4px;padding:2px 7px;margin-left:7px;}
+.fzone{border:1.5px dashed var(--fpl);border-radius:var(--rs);padding:18px;text-align:center;cursor:pointer;background:var(--fpp);transition:border-color 0.15s;margin-top:8px;}
+.fzone:hover{border-color:var(--fp);}
+.fzone p{font-size:13px;color:var(--fpm);}
+.fzone small{font-size:11px;color:var(--fm);}
+#fname{font-size:12px;color:var(--gs);margin-top:6px;font-weight:500;}
+.succ{display:none;text-align:center;padding:56px 24px;animation:fu 0.4s ease;}
+.succ.on{display:block;}
+.succ-icon{width:60px;height:60px;background:var(--gb);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:26px;color:var(--gs);}
+.succ-title{font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:10px;}
+.succ-sub{font-size:14px;color:var(--fm);max-width:340px;margin:0 auto;line-height:1.6;}
+
+/* DASHBOARD */
+.dash-wrap{max-width:760px;margin:0 auto;padding:32px 24px 60px;}
+.dash-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap;}
+.dash-title{font-family:'DM Serif Display',serif;font-size:24px;color:var(--fn);}
+.dash-sub{font-size:13px;color:var(--fm);margin-top:4px;}
+.gen-btn{padding:11px 22px;background:var(--fp);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:background 0.15s;}
+.gen-btn:hover{background:var(--fpm);}
+.gen-btn:disabled{background:#C4B5FD;cursor:not-allowed;}
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px;}
+.met{background:#fff;border:1px solid var(--fb);border-radius:var(--rs);padding:14px 16px;text-align:center;}
+.met-val{font-size:26px;font-weight:600;color:var(--fp);}
+.met-lbl{font-size:11px;color:var(--fm);margin-top:2px;text-transform:uppercase;letter-spacing:0.04em;}
+.dash-section{background:#fff;border:1px solid var(--fb);border-radius:var(--r);padding:22px 24px;margin-bottom:16px;}
+.ds-title{font-size:14px;font-weight:600;color:var(--fn);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.ds-title .cnt{font-size:12px;font-weight:400;color:var(--fm);}
+.vision-box{background:var(--fpd);color:#fff;border-radius:var(--rs);padding:18px 20px;font-size:13px;line-height:1.7;}
+.v-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--fpl);margin-bottom:8px;}
+.top3-card{border:2px solid var(--fp);border-radius:var(--r);padding:18px 20px;margin-bottom:12px;background:#fff;position:relative;}
+.top3-card.rank1{border-color:var(--fl);background:#FAFFF0;}
+.rank-num{position:absolute;top:18px;right:18px;font-size:22px;font-weight:700;color:var(--fpl);}
+.rank-num.gold{color:#854F0B;}
+.agent-name{font-family:'DM Serif Display',serif;font-size:17px;color:var(--fn);margin-bottom:4px;padding-right:44px;}
+.agent-role{font-size:12px;color:var(--fm);margin-bottom:10px;}
+.agent-rationale{font-size:13px;color:var(--fn);line-height:1.6;margin-bottom:12px;}
+.agent-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.atag{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:500;}
+.atag-roi{background:var(--gb);color:#065F46;}
+.atag-build{background:var(--wb);color:#92400E;}
+.atag-vision{background:var(--fpd);color:var(--fpl);}
+.vision-link{font-size:12px;color:var(--fpm);font-style:italic;border-top:1px solid var(--fb);padding-top:10px;margin-top:4px;}
+.idea-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--fb);}
+.idea-row:last-child{border-bottom:none;}
+.ir-rank{font-size:16px;font-weight:600;min-width:26px;color:var(--fm);}
+.ir-rank.gold{color:#854F0B;}
+.ir-body{flex:1;}
+.ir-name{font-size:14px;font-weight:500;color:var(--fn);margin-bottom:2px;}
+.ir-meta{font-size:12px;color:var(--fm);}
+.ir-score{font-size:13px;font-weight:600;color:var(--gs);min-width:60px;text-align:right;}
+.loading{text-align:center;padding:40px;}
+.loading-ring{width:40px;height:40px;border:3px solid var(--fpp);border-top-color:var(--fp);border-radius:50%;margin:0 auto 16px;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading p{font-size:14px;color:var(--fm);}
+.empty-state{text-align:center;padding:40px;color:var(--fm);font-size:14px;}
+.empty-icon{font-size:32px;margin-bottom:12px;}
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab on" onclick="showTab('admin')">Admin & Pilot</div>
+  <div class="tab" onclick="showTab('survey')">Survey</div>
+  <div class="tab" onclick="showTab('dashboard')">AI Lead Dashboard</div>
+</div>
+
+<!-- ADMIN -->
+<div class="screen on" id="scr-admin">
+<div class="admin-wrap">
+  <div class="section-card">
+    <div class="sc-title">Survey link</div>
+    <div class="sc-sub">Share this link in Slack or paste it into a DM to your test users.</div>
+    <div class="link-box">
+      <div class="link-val" id="surveyLink">Loading...</div>
+      <button class="pill-btn" onclick="copyLink()">Copy link</button>
+    </div>
+    <div class="copy-confirm" id="copyConfirm">✓ Copied to clipboard</div>
+  </div>
+  <div class="section-card">
+    <div class="sc-title">Add pilot test users</div>
+    <div class="sc-sub">Add emails, then click "Mark all as sent" once you've shared the link with them in Slack.</div>
+    <div class="email-row">
+      <input type="email" id="emailInput" placeholder="name@front.app" onkeydown="if(event.key==='Enter')addEmail()">
+      <button class="pill-btn" onclick="addEmail()">Add</button>
+    </div>
+    <div class="pilot-list" id="pilotList"></div>
+    <div style="margin-top:14px;">
+      <button class="pill-btn lime" onclick="markAllSent()" id="sendBtn" style="display:none;">Mark all as sent</button>
+    </div>
+  </div>
+  <div class="section-card">
+    <div class="sc-title">Response overview</div>
+    <div class="sc-sub">Updates as submissions come in.</div>
+    <div class="metric-row">
+      <div class="metric"><div class="m-val" id="a-total">0</div><div class="m-lbl">Total responses</div></div>
+      <div class="metric"><div class="m-val" id="a-tech">0</div><div class="m-lbl">Technical track</div></div>
+      <div class="metric"><div class="m-val" id="a-biz">0</div><div class="m-lbl">Business track</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SURVEY -->
+<div class="screen" id="scr-survey">
+<div class="sv-hdr">
+  <div class="sv-logo">
+    <div class="sv-logo-box">
+      <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
+        <rect x="2" y="2" width="5" height="5" rx="1" fill="white"/>
+        <rect x="9" y="2" width="5" height="5" rx="1" fill="white" opacity="0.6"/>
+        <rect x="2" y="9" width="5" height="5" rx="1" fill="white" opacity="0.6"/>
+        <rect x="9" y="9" width="5" height="5" rx="1" fill="white" opacity="0.3"/>
+      </svg>
+    </div>
+    <span class="sv-logo-txt">Front</span>
+  </div>
+  <div class="sv-badge">AI Initiative · 2025</div>
+  <div class="sv-title">Help shape our AI future</div>
+  <div class="sv-sub">6 questions · ~3 minutes · your ideas directly inform what we build next</div>
+</div>
+<div class="prog-wrap">
+  <div class="prog-outer"><div class="prog-inner" id="bar"></div></div>
+  <div class="prog-lbl" id="lbl">1 of 6</div>
+</div>
+<div class="sv-body">
+  <div class="card on" id="s1">
+    <div class="qstep">Question 1 of 6</div>
+    <div class="qtitle">What's your role at Front?</div>
+    <div class="qhint">Used to segment responses — won't affect which ideas get surfaced.</div>
+    <select id="role">
+      <option value="">Select your team...</option>
+      <option>Engineering</option><option>Product Management</option><option>Customer Success</option>
+      <option>Support</option><option>Sales</option><option>Marketing</option>
+      <option>Operations</option><option>Finance</option><option>Data & Analytics</option>
+      <option>Security & IT</option><option>People & HR</option><option>Legal</option>
+      <option>C-Suite / Executive</option><option>Other</option>
+    </select>
+    <div class="navrow"><div></div><button class="btn btn-p" onclick="fromQ1()">Continue →</button></div>
+  </div>
+  <div class="card" id="s2">
+    <div class="qstep">Question 2 of 6</div>
+    <div class="qtitle">How do you work with tools and systems day-to-day?</div>
+    <div class="qhint">Choose what feels most true — this shapes the questions you'll see next.</div>
+    <div class="opts">
+      <div class="opt" id="o-builder" onclick="pickOpt('tech','builder',['o-builder','o-user','o-mix'])"><div class="dot"><div class="dot-i"></div></div><div class="otxt"><strong>I build or configure</strong><span>I write code, connect APIs, or set up systems myself</span></div></div>
+      <div class="opt" id="o-user" onclick="pickOpt('tech','user',['o-builder','o-user','o-mix'])"><div class="dot"><div class="dot-i"></div></div><div class="otxt"><strong>I use tools and data</strong><span>I work with systems but don't build them</span></div></div>
+      <div class="opt" id="o-mix" onclick="pickOpt('tech','mix',['o-builder','o-user','o-mix'])"><div class="dot"><div class="dot-i"></div></div><div class="otxt"><strong>A mix depending on the situation</strong><span>Some of both — context determines my approach</span></div></div>
+    </div>
+    <div class="navrow"><button class="btn btn-s" onclick="sv_go(1)">← Back</button><button class="btn btn-p" onclick="fromQ2()">Continue →</button></div>
+  </div>
+  <div class="card" id="s2b">
+    <div class="qstep">Question 2b of 6</div>
+    <div class="qtitle">When you imagine an AI agent helping you, what feels more natural?</div>
+    <div class="qhint"><em>Choose based on the use case you have in mind — not your job title.</em></div>
+    <div class="opts">
+      <div class="opt" id="o-shape" onclick="pickOpt('mind','builder',['o-shape','o-desc'])"><div class="dot"><div class="dot-i"></div></div><div class="otxt"><strong>Shape how it works</strong><span>I'd want to define its logic, rules, or system connections</span></div></div>
+      <div class="opt" id="o-desc" onclick="pickOpt('mind','insight',['o-shape','o-desc'])"><div class="dot"><div class="dot-i"></div></div><div class="otxt"><strong>Describe what I need</strong><span>I'd want to tell it the outcome and have it figure out the how</span></div></div>
+    </div>
+    <div class="navrow"><button class="btn btn-s" onclick="sv_go(2)">← Back</button><button class="btn btn-p" onclick="fromQ2b()">Continue →</button></div>
+  </div>
+  <div class="card" id="s3">
+    <div class="qstep">Question 3 of 6</div>
+    <div class="qtitle" id="q3t">Walk us through the last time you left work feeling like you didn't do your real job.</div>
+    <div class="qhint" id="q3h">What pulled you away — and what was the actual work that didn't get done?</div>
+    <textarea id="t3" rows="4" placeholder="Be specific — e.g. 'I spent the morning chasing data across three tools for a report that should have taken 20 minutes...'"></textarea>
+    <div class="navrow"><button class="btn btn-s" onclick="backFromQ3()">← Back</button><button class="btn btn-p" onclick="sv_go(4)">Continue →</button></div>
+  </div>
+  <div class="card" id="s4">
+    <div class="qstep">Question 4 of 6</div>
+    <div id="tbadge"></div>
+    <div class="qtitle" id="q4t"></div>
+    <div class="qhint" id="q4h"></div>
+    <textarea id="t4" rows="4" placeholder=""></textarea>
+    <div class="navrow"><button class="btn btn-s" onclick="sv_go(3)">← Back</button><button class="btn btn-p" onclick="sv_go(5)">Continue →</button></div>
+  </div>
+  <div class="card" id="s5">
+    <div class="qstep">Question 5 of 6</div>
+    <div class="qtitle">Now let's sketch the agent.</div>
+    <div class="qhint">Complete this sentence. <em>Don't worry about technical accuracy.</em></div>
+    <div class="sketch" id="skprompt">"Every [hour/day/week], this agent would ___ by connecting ___ and ___, so that I could ___."</div>
+    <textarea id="t5" rows="3" placeholder="Every day, this agent would surface the 3 accounts most at risk of churn..."></textarea>
+    <div class="divider"></div>
+    <div class="feas">
+      <div>
+        <div class="feas-lbl">Does the data this agent needs already exist in tools your team uses?</div>
+        <div class="prow" id="pr1">
+          <span class="p" onclick="togglePill(this)">Yes, it's all there</span>
+          <span class="p" onclick="togglePill(this)">Partially</span>
+          <span class="p" onclick="togglePill(this)">Not sure</span>
+          <span class="p" onclick="togglePill(this)">No — needs to be created</span>
+        </div>
+      </div>
+      <div>
+        <div class="feas-lbl">Is anyone on your team doing a manual version of this today, even crudely?</div>
+        <div class="prow" id="pr2">
+          <span class="p" onclick="togglePill(this)">Yes</span>
+          <span class="p" onclick="togglePill(this)">No</span>
+        </div>
+      </div>
+    </div>
+    <div class="navrow"><button class="btn btn-s" onclick="sv_go(4)">← Back</button><button class="btn btn-p" onclick="sv_go(6)">Continue →</button></div>
+  </div>
+  <div class="card" id="s6">
+    <div class="qstep">Question 6 of 6 <span class="otag">optional</span></div>
+    <div class="qtitle" id="q6t">If this agent worked perfectly — what becomes possible that isn't on the table today?</div>
+    <div class="qhint">Think beyond efficiency. What would you do, know, or offer that you genuinely cannot right now?</div>
+    <textarea id="t6" rows="3" placeholder="We could actually get ahead of churn instead of reacting to it..."></textarea>
+    <div class="divider"></div>
+    <div class="qhint" style="margin-bottom:8px;">Attach a prototype <span class="otag">optional</span></div>
+    <div class="fzone" onclick="document.getElementById('fi').click()">
+      <p>Drop a file, screenshot, or workflow doc here</p>
+      <small>PNG, PDF, DOCX — max 10MB</small>
+    </div>
+    <input type="file" id="fi" style="display:none" onchange="if(this.files[0])document.getElementById('fname').textContent='✓ '+this.files[0].name">
+    <div id="fname"></div>
+    <div class="navrow"><button class="btn btn-s" onclick="sv_go(5)">← Back</button><button class="btn btn-go" onclick="submitSurvey()">Submit my idea →</button></div>
+  </div>
+  <div class="succ" id="done">
+    <div class="succ-icon">✓</div>
+    <div class="succ-title">You're in. Thank you.</div>
+    <div class="succ-sub">Your idea has been submitted. The AI team will synthesize all responses and share the top 3 agents with the whole company.</div>
+    <div style="margin-top:20px;"><button class="pill-btn" onclick="resetSurvey()">Submit another idea</button></div>
+  </div>
+</div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="screen" id="scr-dashboard">
+<div class="dash-wrap">
+  <div class="dash-hdr">
+    <div>
+      <div class="dash-title">AI Lead Dashboard</div>
+      <div class="dash-sub" id="dash-date"></div>
+    </div>
+    <button class="gen-btn" id="genBtn" onclick="generateRankings()">Generate rankings →</button>
+  </div>
+  <div class="metrics-grid">
+    <div class="met"><div class="met-val" id="d-total">0</div><div class="met-lbl">Total responses</div></div>
+    <div class="met"><div class="met-val" id="d-tech">0</div><div class="met-lbl">Technical</div></div>
+    <div class="met"><div class="met-val" id="d-biz">0</div><div class="met-lbl">Business</div></div>
+    <div class="met"><div class="met-val" id="d-exec">0</div><div class="met-lbl">C-Suite</div></div>
+  </div>
+  <div class="dash-section" id="visionSection" style="display:none">
+    <div class="ds-title">C-Suite vision synthesis</div>
+    <div class="vision-box" id="visionBox"></div>
+  </div>
+  <div class="dash-section">
+    <div class="ds-title">Top 3 recommended agents <span class="cnt" id="top3Status">— click "Generate rankings" to evaluate</span></div>
+    <div id="top3Container"><div class="empty-state"><div class="empty-icon">◎</div>Responses will be evaluated by Claude when you click "Generate rankings". C-suite vision will be used as the strategic overlay.</div></div>
+  </div>
+  <div class="dash-section">
+    <div class="ds-title">All submitted ideas <span class="cnt" id="allStatus"></span></div>
+    <div id="allIdeasContainer"><div class="empty-state"><div class="empty-icon">◎</div>No submissions yet. Share the survey link from the Admin tab.</div></div>
+  </div>
+</div>
+</div>
+
+<script>
+var S={tech:'',mind:'',track:'',role:'',step:1};
+var pilots=[];
+var submissions=[];
+
+var SKEY='front_ai_survey_v1';
+
+async function saveData(){
+  try{await window.storage.set(SKEY,JSON.stringify({submissions:submissions,pilots:pilots}));}catch(e){}
+}
+async function loadData(){
+  try{
+    var r=await window.storage.get(SKEY);
+    if(r&&r.value){var d=JSON.parse(r.value);submissions=d.submissions||[];pilots=d.pilots||[];}
+  }catch(e){submissions=[];pilots=[];}
+  refreshMetrics();renderAllIdeas();renderPilots();
+}
+
+function showTab(name){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+  document.getElementById('scr-'+name).classList.add('on');
+  var map={admin:0,survey:1,dashboard:2};
+  document.querySelectorAll('.tab')[map[name]].classList.add('on');
+  if(name==='dashboard')refreshDashboard();
+  if(name==='admin')refreshAdmin();
+}
+
+function copyLink(){
+  var url=document.getElementById('surveyLink').textContent;
+  try{navigator.clipboard.writeText(url);}catch(e){}
+  var c=document.getElementById('copyConfirm');c.style.display='block';
+  setTimeout(function(){c.style.display='none';},2000);
+}
+
+function addEmail(){
+  var inp=document.getElementById('emailInput');
+  var val=inp.value.trim().toLowerCase();
+  if(!val||!val.includes('@'))return;
+  if(pilots.find(function(p){return p.email===val;})){inp.value='';return;}
+  pilots.push({email:val,status:'pending'});
+  inp.value='';
+  saveData();renderPilots();
+}
+
+function markAllSent(){
+  pilots.forEach(function(p){if(p.status==='pending')p.status='sent';});
+  saveData();renderPilots();
+}
+
+function renderPilots(){
+  var list=document.getElementById('pilotList');
+  var sendBtn=document.getElementById('sendBtn');
+  if(pilots.length===0){list.innerHTML='';sendBtn.style.display='none';return;}
+  sendBtn.style.display=pilots.some(function(p){return p.status==='pending';})?'inline-block':'none';
+  var responded=submissions.map(function(s){return s.email||'';});
+  list.innerHTML=pilots.map(function(p){
+    var st=responded.indexOf(p.email)>-1?'responded':p.status;
+    var labels={pending:'Pending',sent:'Sent',responded:'Responded'};
+    var cls={pending:'st-pending',sent:'st-sent',responded:'st-responded'};
+    return '<div class="pilot-row"><span>'+p.email+'</span><span class="status '+cls[st]+'">'+labels[st]+'</span></div>';
+  }).join('');
+}
+
+function refreshAdmin(){
+  document.getElementById('surveyLink').textContent=window.location.href;
+  refreshMetrics();renderPilots();
+}
+
+function refreshMetrics(){
+  var tot=submissions.length;
+  var tech=submissions.filter(function(s){return s.track==='technical';}).length;
+  var biz=submissions.filter(function(s){return s.track==='business';}).length;
+  var exec=submissions.filter(function(s){return s.track==='csuite';}).length;
+  ['a-total','d-total'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=tot;});
+  ['a-tech','d-tech'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=tech;});
+  ['a-biz','d-biz'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=biz;});
+  var de=document.getElementById('d-exec');if(de)de.textContent=exec;
+}
+
+function sv_go(n){
+  document.querySelectorAll('.card').forEach(function(c){c.classList.remove('on');});
+  var t=document.getElementById('s'+n);if(t){t.classList.add('on');S.step=n;}
+  var pct=Math.round((parseInt(n)||1)/6*100);
+  document.getElementById('bar').style.width=pct+'%';
+  document.getElementById('lbl').textContent=(parseInt(n)||1)+' of 6';
+  window.scrollTo(0,0);
+}
+
+function togglePill(el){
+  var row=el.parentElement;
+  row.querySelectorAll('.p').forEach(function(p){p.classList.remove('pon');});
+  el.classList.add('pon');
+}
+
+function pickOpt(key,val,ids){
+  ids.forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('sel');});
+  var map={tech:{builder:'o-builder',user:'o-user',mix:'o-mix'},mind:{builder:'o-shape',insight:'o-desc'}};
+  var elId=map[key]&&map[key][val];
+  if(elId){var el=document.getElementById(elId);if(el)el.classList.add('sel');}
+  S[key]=val;
+}
+
+function fromQ1(){
+  var r=document.getElementById('role').value;
+  if(!r){alert('Please select your role.');return;}
+  S.role=r;
+  if(r==='C-Suite / Executive'){S.track='csuite';setupCsuite();sv_go(3);}
+  else sv_go(2);
+}
+function fromQ2(){
+  if(!S.tech){alert('Please select an option.');return;}
+  if(S.tech==='mix')sv_go('2b');
+  else{S.track=S.tech==='builder'?'technical':'business';setupTrack();sv_go(3);}
+}
+function fromQ2b(){
+  if(!S.mind){alert('Please select an option.');return;}
+  S.track=S.mind==='builder'?'technical':'business';setupTrack();sv_go(3);
+}
+function backFromQ3(){
+  if(S.role==='C-Suite / Executive')sv_go(1);
+  else if(S.tech==='mix')sv_go('2b');
+  else sv_go(2);
+}
+
+function setupCsuite(){
+  document.getElementById('q3t').textContent='If you had a real-time intelligence dashboard built for your role — what would be on it that you simply cannot see clearly today?';
+  document.getElementById('q3h').textContent='Think about what you\'re flying blind on — the signals and decisions that matter most to you.';
+  document.getElementById('t3').placeholder='I\'d want to see churn risk by segment in real time, pipeline health vs last quarter, where teams are blocked...';
+  document.getElementById('tbadge').innerHTML='<div class="trbadge tr-exec">C-Suite track</div>';
+  document.getElementById('q4t').textContent='If an agent prepared you for your week every Monday morning — what would the perfect brief contain?';
+  document.getElementById('q4h').textContent='What would it need to know about your business, your team, and your customers to produce it?';
+  document.getElementById('t4').placeholder='Deals at risk, top 3 escalating customer issues, where we\'re behind plan and why...';
+  document.getElementById('q6t').textContent='Twelve months from now, if AI agents are working across your org the way you\'d want — what does Front do differently that it simply cannot do today?';
+  document.getElementById('skprompt').textContent='"Every [morning/week], this agent would ___ by synthesizing ___ and ___, so that I could ___."';
+  document.getElementById('t5').placeholder='Every Monday, this agent would prepare a full business health brief by pulling CRM, support, and product usage data...';
+}
+
+function setupTrack(){
+  if(S.track==='technical'){
+    document.getElementById('tbadge').innerHTML='<div class="trbadge tr-tech">Technical track</div>';
+    document.getElementById('q4t').textContent='What is your system, data, or tooling already telling you that nobody has time to properly act on?';
+    document.getElementById('q4h').textContent='Think about signals in your stack today — patterns, anomalies, thresholds — that slip through because no one is watching.';
+    document.getElementById('t4').placeholder='Our error rate spikes 40 minutes before every incident but nobody\'s watching that signal in real time...';
+    document.getElementById('skprompt').textContent='"Every [hour/day/week], this agent would ___ by connecting ___ and ___, so that I could ___."';
+    document.getElementById('t5').placeholder='Every hour, this agent would scan error rate deltas by connecting our observability stack and deployment logs...';
+  }else{
+    document.getElementById('tbadge').innerHTML='<div class="trbadge tr-biz">Business track</div>';
+    document.getElementById('q4t').textContent='Think about the best customer interaction you had recently. What did you know going in that made it go well — and how long did it take to get that information?';
+    document.getElementById('q4h').textContent='This surfaces agents that prepare and brief you before high-stakes moments — not just automate tasks.';
+    document.getElementById('t4').placeholder='I knew the customer had three unresolved tickets and their exec sponsor had just changed. But I only found that after 45 minutes...';
+    document.getElementById('skprompt').textContent='"Every [hour/day/week], this agent would ___ by pulling together ___ and ___, so that I could ___."';
+    document.getElementById('t5').placeholder='Every morning, this agent would surface my top 5 at-risk accounts by pulling health scores, recent tickets, and usage trends...';
+  }
+}
+
+function submitSurvey(){
+  var dv='';document.getElementById('pr1').querySelectorAll('.p.pon').forEach(function(p){dv=p.textContent;});
+  var mv='';document.getElementById('pr2').querySelectorAll('.p.pon').forEach(function(p){mv=p.textContent;});
+  var sub={
+    id:Date.now(),ts:new Date().toLocaleDateString(),
+    role:document.getElementById('role').value,track:S.track,
+    friction:document.getElementById('t3').value,
+    deep:document.getElementById('t4').value,
+    sketch:document.getElementById('t5').value,
+    dataExists:dv,manualExists:mv,
+    unlock:document.getElementById('t6').value,
+    email:(pilots.find(function(p){return p.status==='sent';})||{}).email||''
+  };
+  submissions.push(sub);
+  saveData();refreshMetrics();
+  var sp=pilots.find(function(p){return p.status==='sent';});
+  if(sp)sp.status='responded';
+  document.querySelectorAll('.card').forEach(function(c){c.classList.remove('on');});
+  document.getElementById('done').classList.add('on');
+  document.getElementById('bar').style.width='100%';
+  document.getElementById('lbl').textContent='Complete';
+  window.scrollTo(0,0);
+}
+
+function resetSurvey(){
+  S={tech:'',mind:'',track:'',role:'',step:1};
+  ['role','t3','t4','t5','t6'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  document.querySelectorAll('.opt.sel').forEach(function(o){o.classList.remove('sel');});
+  document.querySelectorAll('.p.pon').forEach(function(p){p.classList.remove('pon');});
+  document.getElementById('done').classList.remove('on');
+  sv_go(1);
+}
+
+function refreshDashboard(){
+  document.getElementById('dash-date').textContent='As of '+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  refreshMetrics();renderAllIdeas();
+}
+
+function renderAllIdeas(){
+  var c=document.getElementById('allIdeasContainer');
+  var st=document.getElementById('allStatus');
+  if(submissions.length===0){
+    c.innerHTML='<div class="empty-state"><div class="empty-icon">◎</div>No submissions yet. Share the survey link from the Admin tab.</div>';
+    if(st)st.textContent='';return;
+  }
+  if(st)st.textContent='— '+submissions.length+' total';
+  c.innerHTML=submissions.map(function(s,i){
+    var name=s.sketch?s.sketch.substring(0,72)+(s.sketch.length>72?'...':''):'(no sketch)';
+    return '<div class="idea-row"><div class="ir-rank '+(i<3?'gold':'')+'">'+( i+1)+'</div><div class="ir-body"><div class="ir-name">'+s.role+' · '+s.track+'</div><div class="ir-meta">'+name+'</div><div class="ir-meta" style="margin-top:2px;">Data: '+(s.dataExists||'—')+' · Manual: '+(s.manualExists||'—')+'</div></div></div>';
+  }).join('');
+}
+
+async function generateRankings(){
+  if(submissions.length===0){alert('No submissions yet — share the survey link and collect responses first.');return;}
+  var btn=document.getElementById('genBtn');
+  btn.disabled=true;btn.textContent='Evaluating...';
+  var top3=document.getElementById('top3Container');
+  var status=document.getElementById('top3Status');
+  top3.innerHTML='<div class="loading"><div class="loading-ring"></div><p>Claude is reading all submissions, synthesizing C-suite vision, and ranking agents by ROI and strategic alignment...</p></div>';
+  status.textContent='— evaluating...';
+
+  var csuite=submissions.filter(function(s){return s.track==='csuite';});
+  var ic=submissions.filter(function(s){return s.track!=='csuite';});
+
+  var prompt='You are evaluating employee survey responses about AI agent opportunities at Front.com. Your job: identify the top 3 AI agents to build.\n\n';
+  if(csuite.length>0){
+    prompt+='## C-SUITE VISION\nUse these as a strategic overlay when ranking — ideas that align with this vision get boosted.\n\n';
+    csuite.forEach(function(s,i){
+      prompt+='Executive #'+(i+1)+':\n- Dashboard vision: '+s.friction+'\n- Monday brief: '+s.deep+'\n- 12-month vision: '+s.unlock+'\n\n';
+    });
+  }
+  prompt+='## ALL SUBMISSIONS ('+ic.length+')\n\n';
+  ic.forEach(function(s,i){
+    prompt+='#'+(i+1)+' | '+s.role+' | '+s.track+'\n';
+    prompt+='Friction: '+s.friction+'\nDeep insight: '+s.deep+'\nAgent sketch: '+s.sketch+'\nData exists: '+s.dataExists+'\nManual version: '+s.manualExists+'\nUnlocks: '+s.unlock+'\n\n';
+  });
+  prompt+='## OUTPUT\nReturn ONLY valid JSON, no markdown, no backticks:\n{"visionSummary":"2-3 sentence synthesis of C-suite AI vision","top3":[{"rank":1,"agentName":"name","sourceRole":"role","rationale":"2-3 sentences why this ranks here and what it does","roiSignal":"High/Medium/Low — brief reason","buildComplexity":"Low/Medium/High","visionAlignment":"how this maps to C-suite vision","unlocks":"what becomes possible"}],"allRanked":[{"rank":1,"agentName":"name","role":"role","sketch":"brief description","roiSignal":"High/Medium/Low"}]}';
+
+  try{
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    var data=await resp.json();
+    var text=data.content&&data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('');
+    var clean=text.replace(/```json|```/g,'').trim();
+    var result=JSON.parse(clean);
+    renderRankings(result);
+  }catch(e){
+    top3.innerHTML='<div class="empty-state"><div class="empty-icon">⚠</div>Evaluation failed — please try again.<br><small>'+e.message+'</small></div>';
+    status.textContent='— error';
+  }
+  btn.disabled=false;btn.textContent='Re-generate rankings →';
+}
+
+function renderRankings(result){
+  document.getElementById('top3Status').textContent='— generated '+new Date().toLocaleTimeString();
+  if(result.visionSummary){
+    document.getElementById('visionSection').style.display='block';
+    document.getElementById('visionBox').innerHTML='<div class="v-label">C-Suite strategic vision</div>'+result.visionSummary;
+  }
+  var top3=document.getElementById('top3Container');
+  if(!result.top3||result.top3.length===0){top3.innerHTML='<div class="empty-state">No top 3 generated.</div>';return;}
+  top3.innerHTML=result.top3.map(function(a){
+    var isFirst=a.rank===1;
+    return '<div class="top3-card'+(isFirst?' rank1':'')+'">'+
+      '<div class="rank-num'+(isFirst?' gold':'')+'">#'+a.rank+'</div>'+
+      '<div class="agent-name">'+a.agentName+'</div>'+
+      '<div class="agent-role">'+a.sourceRole+'</div>'+
+      '<div class="agent-rationale">'+a.rationale+'</div>'+
+      '<div class="agent-meta">'+
+        '<span class="atag atag-roi">ROI: '+a.roiSignal+'</span>'+
+        '<span class="atag atag-build">Build: '+a.buildComplexity+'</span>'+
+        (a.visionAlignment?'<span class="atag atag-vision">Vision aligned</span>':'')+
+      '</div>'+
+      (a.unlocks?'<div class="vision-link">Unlocks: '+a.unlocks+'</div>':'')+
+      (a.visionAlignment?'<div class="vision-link" style="margin-top:6px;">C-Suite alignment: '+a.visionAlignment+'</div>':'')+
+    '</div>';
+  }).join('');
+  if(result.allRanked){
+    document.getElementById('allStatus').textContent='— '+result.allRanked.length+' ranked by Claude';
+    document.getElementById('allIdeasContainer').innerHTML=result.allRanked.map(function(a,i){
+      return '<div class="idea-row"><div class="ir-rank '+(i<3?'gold':'')+'">'+a.rank+'</div><div class="ir-body"><div class="ir-name">'+a.agentName+' · '+a.role+'</div><div class="ir-meta">'+(a.sketch||'')+'</div></div><div class="ir-score">'+a.roiSignal+'</div></div>';
+    }).join('');
+  }
+}
+
+document.getElementById('dash-date').textContent='As of '+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+document.getElementById('surveyLink').textContent=window.location.href;
+loadData();
+</script>
+</body>
+</html>
