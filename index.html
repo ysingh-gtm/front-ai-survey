@@ -367,11 +367,14 @@ var PILOTS_KEY='front_pilots_v1';
 
 async function saveSubmission(sub){
   try{
+    // Use form-encoded POST — required for Google Apps Script CORS
+    var params=new URLSearchParams();
+    Object.keys(sub).forEach(function(k){ params.append(k, sub[k]||''); });
     await fetch(GS_URL,{
       method:'POST',
       mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(sub)
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:params.toString()
     });
   }catch(e){console.log('Sheet write error:',e);}
 }
@@ -587,9 +590,44 @@ function renderAllIdeas(){
   }
   if(st)st.textContent='— '+submissions.length+' total';
   c.innerHTML=submissions.map(function(s,i){
+    var id='sub-'+i;
     var name=s.sketch?s.sketch.substring(0,72)+(s.sketch.length>72?'...':''):'(no sketch)';
-    return '<div class="idea-row"><div class="ir-rank '+(i<3?'gold':'')+'">'+( i+1)+'</div><div class="ir-body"><div class="ir-name">'+s.role+' · '+s.track+'</div><div class="ir-meta">'+name+'</div><div class="ir-meta" style="margin-top:2px;">Data: '+(s.dataExists||'—')+' · Manual: '+(s.manualExists||'—')+'</div></div></div>';
+    var trackColor=s.track==='technical'?'#EDE9FF':s.track==='csuite'?'#1A1F3C':'#FFF3E0';
+    var trackText=s.track==='technical'?'#5B1F9A':s.track==='csuite'?'#D4F542':'#B45309';
+    return '<div class="idea-row" style="flex-direction:column;align-items:stretch;cursor:pointer;" onclick="toggleSub(this)">'+
+      '<div style="display:flex;align-items:flex-start;gap:12px;">'+
+        '<div class="ir-rank '+(i<3?'gold':'')+'">'+( i+1)+'</div>'+
+        '<div class="ir-body">'+
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">'+
+            '<span class="ir-name">'+s.role+'</span>'+
+            '<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;background:'+trackColor+';color:'+trackText+';">'+s.track+'</span>'+
+          '</div>'+
+          '<div class="ir-meta">'+name+'</div>'+
+          '<div class="ir-meta" style="margin-top:2px;color:#9CA3AF;font-size:11px;">'+s.ts+' · click to expand</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="sub-detail" style="display:none;margin-top:14px;padding:16px;background:#F7F6FB;border-radius:8px;border-left:3px solid #7B2FBE;">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'+
+          renderField('Friction / what got in the way', s.friction)+
+          renderField('Deep insight', s.deep)+
+          renderField('Agent sketch', s.sketch)+
+          renderField('Unlocks', s.unlock)+
+          renderField('Data exists?', s.dataExists)+
+          renderField('Manual version exists?', s.manualExists)+
+        '</div>'+
+      '</div>'+
+    '</div>';
   }).join('');
+}
+
+function renderField(label, value){
+  if(!value) return '';
+  return '<div style="grid-column:span '+(value&&value.length>80?'2':'1')+';"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#7B2FBE;margin-bottom:4px;">'+label+'</div><div style="font-size:13px;color:#1A1F3C;line-height:1.5;">'+value+'</div></div>';
+}
+
+function toggleSub(row){
+  var detail=row.querySelector('.sub-detail');
+  if(detail) detail.style.display=detail.style.display==='none'?'block':'none';
 }
 
 async function generateRankings(){
