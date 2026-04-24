@@ -363,17 +363,27 @@ var S={tech:'',mind:'',track:'',role:'',step:1};
 var pilots=[];
 var submissions=[];
 
-var GS_URL='https://script.google.com/macros/s/AKfycbyVMEC5kAtNfOuvdKV4_hPOu0iOosR-a2HuOUuxru39SfTAURM29xoLUBYHrfR1L2tJmA/exec';
+var GS_URL='https://script.google.com/macros/s/AKfycbxq4IgzyBzTPCf_ZKAYwoy5D-MuV0W2_ThLTYRA3NtDIhK8fGhcMiN3ExKBvyUJKkE5rw/exec';
 var PILOTS_KEY='front_pilots_v1';
 
 async function saveSubmission(sub){
-  try{
-    // Use GET with URL params — avoids CORS issues with Apps Script
-    var params=new URLSearchParams();
-    params.append('action','save');
-    Object.keys(sub).forEach(function(k){ params.append(k, sub[k]||''); });
-    await fetch(GS_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'});
-  }catch(e){console.log('Sheet write error:',e);}
+  return new Promise(function(resolve){
+    try{
+      var params=new URLSearchParams();
+      params.append('action','save');
+      Object.keys(sub).forEach(function(k){ params.append(k, (sub[k]||'').toString().substring(0,500)); });
+      // Image ping — follows redirects, no CORS issues, works with Apps Script
+      var img=new Image();
+      img.onload=function(){resolve('ok');};
+      img.onerror=function(){resolve('sent');};  // error still means request was made
+      img.src=GS_URL+'?'+params.toString();
+      // Fallback resolve after 3s
+      setTimeout(function(){resolve('timeout');},3000);
+    }catch(e){
+      console.log('Submission error:',e);
+      resolve('error');
+    }
+  });
 }
 
 async function loadData(){
@@ -550,18 +560,20 @@ function submitSurvey(){
     unlock:document.getElementById('t6').value,
     email:(pilots.find(function(p){return p.status==='sent';})||{}).email||''
   };
-  // Save to Google Sheet
-  saveSubmission(sub);
-  // Also keep local copy for immediate UI update
-  submissions.push(sub);
-  refreshMetrics();
+  // Save to Google Sheet then update UI
+  document.querySelector('.btn-go').textContent='Saving...';
+  saveSubmission(sub).then(function(){
+    submissions.push(sub);
+    refreshMetrics();
+    document.querySelectorAll('.card').forEach(function(c){c.classList.remove('on');});
+    document.getElementById('done').classList.add('on');
+    document.getElementById('bar').style.width='100%';
+    document.getElementById('lbl').textContent='Complete';
+    window.scrollTo(0,0);
+  });
+  return;  // prevent duplicate screen switch below
   var sp=pilots.find(function(p){return p.status==='sent';});
   if(sp){sp.status='responded';savePilots();}
-  document.querySelectorAll('.card').forEach(function(c){c.classList.remove('on');});
-  document.getElementById('done').classList.add('on');
-  document.getElementById('bar').style.width='100%';
-  document.getElementById('lbl').textContent='Complete';
-  window.scrollTo(0,0);
 }
 
 function resetSurvey(){
