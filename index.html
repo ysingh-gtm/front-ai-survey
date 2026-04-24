@@ -13,7 +13,8 @@
   --gs:#10B981;--gb:#ECFDF5;--ws:#F59E0B;--wb:#FFFBEB;
 }
 body{font-family:'DM Sans',sans-serif;background:var(--fo);color:var(--fn);min-height:100vh;}
-.tabs{display:flex;background:var(--fpd);padding:0 32px;}
+.tabs{display:none;background:var(--fpd);padding:0 32px;}
+.tabs.visible{display:flex;}
 .tab{padding:14px 20px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.55);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;}
 .tab.on{color:#fff;border-bottom-color:var(--fl);}
 .screen{display:none;}.screen.on{display:block;}
@@ -362,7 +363,7 @@ var S={tech:'',mind:'',track:'',role:'',step:1};
 var pilots=[];
 var submissions=[];
 
-var GS_URL='https://script.google.com/macros/s/AKfycbzUPFoaYlnhSxIW9rCYF4pIBELDdq5pDahK9ALdNvj2phEYMT-yrYm7ySBBe9h7kjmKUA/exec';
+var GS_URL='https://script.google.com/macros/s/AKfycbyVMEC5kAtNfOuvdKV4_hPOu0iOosR-a2HuOUuxru39SfTAURM29xoLUBYHrfR1L2tJmA/exec';
 var PILOTS_KEY='front_pilots_v1';
 
 async function saveSubmission(sub){
@@ -714,8 +715,22 @@ function renderRankings(result){
 }
 
 document.getElementById('dash-date').textContent='As of '+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-document.getElementById('surveyLink').textContent=window.location.href;
-loadData();
+
+// Check for admin mode via URL param
+var urlParams=new URLSearchParams(window.location.search);
+var isAdmin=urlParams.get('admin')==='front2026';
+
+if(isAdmin){
+  // Show tabs, set survey link without admin param
+  document.querySelector('.tabs').classList.add('visible');
+  var cleanUrl=window.location.href.split('?')[0];
+  document.getElementById('surveyLink').textContent=cleanUrl;
+  loadData();
+} else {
+  // Hide tabs, show only survey screen
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});
+  document.getElementById('scr-survey').classList.add('on');
+}
 </script>
 </body>
 </html>
