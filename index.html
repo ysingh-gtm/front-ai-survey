@@ -301,10 +301,64 @@ textarea{resize:vertical;line-height:1.6;}
         </div>
       </div>
     </div>
-    <div class="navrow"><button class="btn btn-s" onclick="sv_go(4)">← Back</button><button class="btn btn-p" onclick="sv_go(6)">Continue →</button></div>
+    <div class="navrow"><button class="btn btn-s" onclick="sv_go(4)">← Back</button><button class="btn btn-p" onclick="fromQ5()">Continue →</button></div>
   </div>
+
+  <!-- S5roi: ROI QUESTIONS (non-csuite only) -->
+  <div class="card" id="s5roi">
+    <div class="qstep">Question 5b of 6</div>
+    <div class="qtitle">Help us size the impact.</div>
+    <div class="qhint">These three questions let us calculate the real ROI of your idea. <em>Rough estimates are fine.</em></div>
+
+    <div style="margin-bottom:20px;">
+      <div class="feas-lbl">How many people on your team face this same problem?</div>
+      <div class="prow" id="pr-people">
+        <span class="p" onclick="togglePill(this)">Just me</span>
+        <span class="p" onclick="togglePill(this)">2–5 people</span>
+        <span class="p" onclick="togglePill(this)">6–15 people</span>
+        <span class="p" onclick="togglePill(this)">16–30 people</span>
+        <span class="p" onclick="togglePill(this)">Entire company</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <div class="feas-lbl">How often does this happen — and how long does it take each time?</div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:12px;color:var(--fm);margin-bottom:6px;">Frequency</div>
+        <div class="prow" id="pr-freq">
+          <span class="p" onclick="togglePill(this)">Hourly</span>
+          <span class="p" onclick="togglePill(this)">Daily</span>
+          <span class="p" onclick="togglePill(this)">Weekly</span>
+          <span class="p" onclick="togglePill(this)">Monthly</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--fm);margin-bottom:6px;">Time per occurrence</div>
+        <div class="prow" id="pr-time">
+          <span class="p" onclick="togglePill(this)">Under 15 min</span>
+          <span class="p" onclick="togglePill(this)">15–30 min</span>
+          <span class="p" onclick="togglePill(this)">30–60 min</span>
+          <span class="p" onclick="togglePill(this)">1–2 hrs</span>
+          <span class="p" onclick="togglePill(this)">2+ hrs</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="feas-lbl">Does this problem directly affect customers, revenue, or system reliability?</div>
+      <div class="prow" id="pr-impact">
+        <span class="p" onclick="togglePill(this)">Yes — customer facing</span>
+        <span class="p" onclick="togglePill(this)">Yes — revenue impact</span>
+        <span class="p" onclick="togglePill(this)">Yes — system reliability</span>
+        <span class="p" onclick="togglePill(this)">No — internal only</span>
+      </div>
+    </div>
+
+    <div class="navrow"><button class="btn btn-s" onclick="sv_go(5)">← Back</button><button class="btn btn-p" onclick="sv_go(6)">Continue →</button></div>
+  </div>
+
   <div class="card" id="s6">
-    <div class="qstep">Question 6 of 6 <span class="otag">optional</span></div>
+    <div class="qstep">Question 6 of 7 <span class="otag">optional</span></div>
     <div class="qtitle" id="q6t">If this agent worked perfectly — what becomes possible that isn't on the table today?</div>
     <div class="qhint">Think beyond efficiency. What would you do, know, or offer that you genuinely cannot right now?</div>
     <textarea id="t6" rows="3" placeholder="We could actually get ahead of churn instead of reacting to it..."></textarea>
@@ -316,7 +370,7 @@ textarea{resize:vertical;line-height:1.6;}
     </div>
     <input type="file" id="fi" style="display:none" onchange="if(this.files[0])document.getElementById('fname').textContent='✓ '+this.files[0].name">
     <div id="fname"></div>
-    <div class="navrow"><button class="btn btn-s" onclick="sv_go(5)">← Back</button><button class="btn btn-go" onclick="submitSurvey()">Submit my idea →</button></div>
+    <div class="navrow"><button class="btn btn-s" onclick="backFromQ6()">← Back</button><button class="btn btn-go" onclick="submitSurvey()">Submit my idea →</button></div>
   </div>
   <div class="succ" id="done">
     <div class="succ-icon">✓</div>
@@ -363,7 +417,7 @@ var S={tech:'',mind:'',track:'',role:'',step:1};
 var pilots=[];
 var submissions=[];
 
-var GS_URL='https://script.google.com/macros/s/AKfycbwRBLhg3FUOezBzgBfO3Vi7lma6gk8GCCxYl7k_yW_AWHCO5spBz0SitirvtaVYJaC6gA/exec';
+var GS_URL='https://script.google.com/macros/s/AKfycbzGAtEsU-vYL-XDwX1uahfCrovc1_XUoG8gJ1gJAJKhq00u941JSgvnsbJtpmajmscKrQ/exec';
 var PILOTS_KEY='front_pilots_v1';
 
 async function saveSubmission(sub){
@@ -473,9 +527,11 @@ function refreshMetrics(){
 function sv_go(n){
   document.querySelectorAll('.card').forEach(function(c){c.classList.remove('on');});
   var t=document.getElementById('s'+n);if(t){t.classList.add('on');S.step=n;}
-  var pct=Math.round((parseInt(n)||1)/6*100);
+  var total=S.track==='csuite'?6:7;
+  var stepNum=n==='5roi'?6:n==='2b'?2:(parseInt(n)||1);
+  var pct=Math.round(stepNum/total*100);
   document.getElementById('bar').style.width=pct+'%';
-  document.getElementById('lbl').textContent=(parseInt(n)||1)+' of 6';
+  document.getElementById('lbl').textContent=stepNum+' of '+total;
   window.scrollTo(0,0);
 }
 
@@ -508,6 +564,17 @@ function fromQ2(){
 function fromQ2b(){
   if(!S.mind){alert('Please select an option.');return;}
   S.track=S.mind==='builder'?'technical':'business';setupTrack();sv_go(3);
+}
+
+function fromQ5(){
+  // C-suite skips ROI questions, goes straight to unlock
+  if(S.track==='csuite') sv_go(6);
+  else sv_go('5roi');
+}
+
+function backFromQ6(){
+  if(S.track==='csuite') sv_go(5);
+  else sv_go('5roi');
 }
 function backFromQ3(){
   if(S.role==='C-Suite / Executive')sv_go(1);
@@ -549,6 +616,10 @@ function setupTrack(){
 function submitSurvey(){
   var dv='';document.getElementById('pr1').querySelectorAll('.p.pon').forEach(function(p){dv=p.textContent;});
   var mv='';document.getElementById('pr2').querySelectorAll('.p.pon').forEach(function(p){mv=p.textContent;});
+  var people='';document.getElementById('pr-people').querySelectorAll('.p.pon').forEach(function(p){people=p.textContent;});
+  var freq='';document.getElementById('pr-freq').querySelectorAll('.p.pon').forEach(function(p){freq=p.textContent;});
+  var time='';document.getElementById('pr-time').querySelectorAll('.p.pon').forEach(function(p){time=p.textContent;});
+  var impact='';document.getElementById('pr-impact').querySelectorAll('.p.pon').forEach(function(p){impact=p.textContent;});
   var sub={
     id:Date.now(),ts:new Date().toLocaleDateString(),
     role:document.getElementById('role').value,track:S.track,
@@ -556,6 +627,7 @@ function submitSurvey(){
     deep:document.getElementById('t4').value,
     sketch:document.getElementById('t5').value,
     dataExists:dv,manualExists:mv,
+    peopleAffected:people,frequency:freq,timePerOccurrence:time,strategicImpact:impact,
     unlock:document.getElementById('t6').value,
     email:(pilots.find(function(p){return p.status==='sent';})||{}).email||''
   };
