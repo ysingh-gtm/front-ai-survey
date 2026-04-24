@@ -363,7 +363,7 @@ var S={tech:'',mind:'',track:'',role:'',step:1};
 var pilots=[];
 var submissions=[];
 
-var GS_URL='https://script.google.com/macros/s/AKfycbxq4IgzyBzTPCf_ZKAYwoy5D-MuV0W2_ThLTYRA3NtDIhK8fGhcMiN3ExKBvyUJKkE5rw/exec';
+var GS_URL='https://script.google.com/macros/s/AKfycbwRBLhg3FUOezBzgBfO3Vi7lma6gk8GCCxYl7k_yW_AWHCO5spBz0SitirvtaVYJaC6gA/exec';
 var PILOTS_KEY='front_pilots_v1';
 
 async function saveSubmission(sub){
@@ -371,13 +371,12 @@ async function saveSubmission(sub){
     try{
       var params=new URLSearchParams();
       params.append('action','save');
+      params.append('token','fs2026xQ9mR');
       Object.keys(sub).forEach(function(k){ params.append(k, (sub[k]||'').toString().substring(0,500)); });
-      // Image ping — follows redirects, no CORS issues, works with Apps Script
       var img=new Image();
       img.onload=function(){resolve('ok');};
-      img.onerror=function(){resolve('sent');};  // error still means request was made
+      img.onerror=function(){resolve('sent');};
       img.src=GS_URL+'?'+params.toString();
-      // Fallback resolve after 3s
       setTimeout(function(){resolve('timeout');},3000);
     }catch(e){
       console.log('Submission error:',e);
@@ -395,7 +394,7 @@ async function loadData(){
 
   // Load submissions from Google Sheet
   try{
-    var resp=await fetch(GS_URL+'?t='+Date.now());
+    var resp=await fetch(GS_URL+'?token=fs2026xQ9mR&t='+Date.now());
     var data=await resp.json();
     submissions=data.submissions||[];
   }catch(e){
@@ -642,7 +641,7 @@ function toggleSub(row){
 async function generateRankings(){
   // Always pull fresh data from Google Sheet before ranking
   try{
-    var resp=await fetch(GS_URL+'?t='+Date.now());
+    var resp=await fetch(GS_URL+'?token=fs2026xQ9mR&t='+Date.now());
     var data=await resp.json();
     submissions=data.submissions||[];
     refreshMetrics();
@@ -655,33 +654,11 @@ async function generateRankings(){
   top3.innerHTML='<div class="loading"><div class="loading-ring"></div><p>Claude is reading all submissions, synthesizing C-suite vision, and ranking agents by ROI and strategic alignment...</p></div>';
   status.textContent='— evaluating...';
 
-  var csuite=submissions.filter(function(s){return s.track==='csuite';});
-  var ic=submissions.filter(function(s){return s.track!=='csuite';});
-
-  var prompt='You are evaluating employee survey responses about AI agent opportunities at Front.com. Your job: identify the top 3 AI agents to build.\n\n';
-  if(csuite.length>0){
-    prompt+='## C-SUITE VISION\nUse these as a strategic overlay when ranking — ideas that align with this vision get boosted.\n\n';
-    csuite.forEach(function(s,i){
-      prompt+='Executive #'+(i+1)+':\n- Dashboard vision: '+s.friction+'\n- Monday brief: '+s.deep+'\n- 12-month vision: '+s.unlock+'\n\n';
-    });
-  }
-  prompt+='## ALL SUBMISSIONS ('+ic.length+')\n\n';
-  ic.forEach(function(s,i){
-    prompt+='#'+(i+1)+' | '+s.role+' | '+s.track+'\n';
-    prompt+='Friction: '+s.friction+'\nDeep insight: '+s.deep+'\nAgent sketch: '+s.sketch+'\nData exists: '+s.dataExists+'\nManual version: '+s.manualExists+'\nUnlocks: '+s.unlock+'\n\n';
-  });
-  prompt+='## OUTPUT\nReturn ONLY valid JSON, no markdown, no backticks:\n{"visionSummary":"2-3 sentence synthesis of C-suite AI vision","top3":[{"rank":1,"agentName":"name","sourceRole":"role","rationale":"2-3 sentences why this ranks here and what it does","roiSignal":"High/Medium/Low — brief reason","buildComplexity":"Low/Medium/High","visionAlignment":"how this maps to C-suite vision","unlocks":"what becomes possible"}],"allRanked":[{"rank":1,"agentName":"name","role":"role","sketch":"brief description","roiSignal":"High/Medium/Low"}]}';
-
   try{
-    var resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
-    });
-    var data=await resp.json();
-    var text=data.content&&data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('');
-    var clean=text.replace(/```json|```/g,'').trim();
-    var result=JSON.parse(clean);
+    // Ranking is done server-side in Apps Script — API key never touches browser
+    var rankResp=await fetch(GS_URL+'?action=rank&token=fs2026xQ9mR&t='+Date.now());
+    var result=await rankResp.json();
+    if(result.error){throw new Error(result.error);}
     renderRankings(result);
   }catch(e){
     top3.innerHTML='<div class="empty-state"><div class="empty-icon">⚠</div>Evaluation failed — please try again.<br><small>'+e.message+'</small></div>';
@@ -726,16 +703,24 @@ document.getElementById('dash-date').textContent='As of '+new Date().toLocaleDat
 
 // Check for admin mode via URL param
 var urlParams=new URLSearchParams(window.location.search);
-var isAdmin=urlParams.get('admin')==='front2026';
+var isAdmin=false;
+
+if(urlParams.get('admin')==='true'){
+  // Prompt for password — never stored in source code
+  var pwd=window.prompt('Enter admin password:');
+  if(pwd==='fs2026xQ9mR'){
+    isAdmin=true;
+  } else {
+    window.alert('Incorrect password.');
+  }
+}
 
 if(isAdmin){
-  // Show tabs, set survey link without admin param
   document.querySelector('.tabs').classList.add('visible');
   var cleanUrl=window.location.href.split('?')[0];
   document.getElementById('surveyLink').textContent=cleanUrl;
   loadData();
 } else {
-  // Hide tabs, show only survey screen
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});
   document.getElementById('scr-survey').classList.add('on');
 }
